@@ -1,0 +1,125 @@
+% sizes tiny scriptsize footnotesize small normalsize large Large LARGE huge Huge
+
+\documentclass[presentation]{beamer}
+
+\usetheme{JuanLesPins}
+\usecolortheme{orchid}
+\setbeamertemplate{headline}{}
+\setbeamertemplate{navigation symbols}{}
+
+\usepackage{subfig}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage[english]{babel}
+\usepackage[latin1]{inputenc}
+\usepackage{color}
+\input{listing_theme.tex}
+
+\usepackage{tikz}
+
+
+% Add any additional packages you use in your presentation
+% -----pack
+% \usepackage{xxx}
+
+% -----
+
+% Add your custom definitions etc., if required
+% -----misc
+% \newcommand{\xxx}[1]{[#1]}
+% -----
+
+
+
+
+\title{Optimizations for function calls}
+\author[]{Anna Bryta?czyk \and Jakub Sroka}
+\institute[]{Akademia Górniczo-Hutnicza}
+\date{16.06.2020}
+
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\frame{\tableofcontents}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Introduction}
+\begin{frame}
+	\frametitle{Introduction} 
+   Through the code generation process it is possible to obtain some optimizations. The main goal is to make generated code:
+   \begin{itemize}
+   	\item completely correct
+   	\item high speed
+   	\item small size
+   	\item low energy consumption
+   \end{itemize} 
+	In presented order if only application doesn't dictate any special requirements.
+\end{frame}
+
+\begin{frame}
+	\frametitle{Introduction} 
+	One of the most efficient techniques of optimisations is to optimize function calls.
+	
+\end{frame}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{In-lining}
+\begin{frame}[fragile]
+	\frametitle{In-lining}
+	To clearly explain the idea of in-lining, let's look for the following example in C language:
+	
+	\begin{columns}
+		\begin{column}{0.48\textwidth}
+			\begin{lstlisting}[linewidth=\textwidth, basicstyle=\tiny]
+void f(){
+    ...
+    g(numb++);
+    ...
+}
+
+void g(int i){
+    printf("sqrt= %d", i*i);
+}
+			\end{lstlisting}
+		\end{column}
+		\begin{column}{0.04\textwidth}
+		\begin{tikzpicture}
+		\tikzstyle{arrow} = [thick,->,>=stealth]
+		\draw [arrow](0,0) -- (0.5, 0);
+		\end{tikzpicture}
+		\end{column}
+		\begin{column}{0.48\textwidth}  %%<--- here
+					\begin{lstlisting}[linewidth=\textwidth, basicstyle=\tiny]
+void f(){
+    ...
+    {int i=numb++; printf("sqrt= %d", i*i);}
+    ...
+}
+
+void g(int n){
+    printf("Lucky number is: %d", n);
+}
+					\end{lstlisting}
+		\end{column}
+	\end{columns}
+	
+\end{frame}
+
+\begin{frame}
+	\textbf{What happened?} \newline
+	Mainly, call of function g in AST of f was replaced by the AST of g, but also during in-lining there is a need to handle returned value and parameter transfer. The last two depends on language and here the variable trasfer looks like "int i=variable;". \newline
+	Note that in this case naive replacing "i" by "numb++" would be incorrect and that is why "i" declaration is necessary. 
+\end{frame}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Cloning}
+\begin{frame}
+	\frametitle{Cloning}
+	
+\end{frame}
+
+\end{document}
