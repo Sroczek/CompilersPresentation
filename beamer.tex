@@ -22,11 +22,15 @@
 % -----pack
 % \usepackage{xxx}
 
+
 % -----
 
 % Add your custom definitions etc., if required
 % -----misc
 % \newcommand{\xxx}[1]{[#1]}
+\usetikzlibrary{shapes.geometric, arrows}
+\tikzstyle{node} = [rectangle, rounded corners, minimum width=10cm, minimum height=1cm,text centered, draw=black, fill=blue!30]
+\tikzstyle{arrow} = [thick,->,>=stealth]
 % -----
 
 
@@ -115,11 +119,68 @@ void g(int n){
 	Note that in this case naive replacing "i" by "numb++" would be incorrect and that is why "i" declaration is necessary. 
 \end{frame}
 
+\begin{frame}
+	\frametitle{Why in-lining}
+	In-lining eliminate function call with could be expensive, but the real gain of it is "breaking unbreakable barrier of function" as is going on other kinds of optimization.
+	\newline\newline
+	However, in-lining is recommeded expecially for short functions. In-lining frequently occuring, long functions could cause incresing genreated code size and time of compilation what in some cases is unacceptable.
+	\newline\newline
+	
+	
+\end{frame}
+
+\begin{frame}
+	\frametitle{Example 2}
+	Refering to function g in previous example, let's look what could be done after in-lining of g(4):
+	\newline
+	\newline
+	\begin{tikzpicture}[node distance=2cm]
+	\node (n1) [node] {\{int i=4; printf("sqrt= \%d", i*i);\}};
+	\node (n2) [node, below of=n1] {\{int i=4; printf("sqrt= \%d", 4*4);\}};
+	\node (n3) [node, below of=n2] {\{int i=4; printf("sqrt= \%d", 16);\}};
+
+	\draw [arrow] (n1) -- node[anchor=east] {Constant propagation} (n2);
+	\draw [arrow] (n2) -- node[anchor=east] {Constant folding} (n3);
+	\end{tikzpicture}
+	\newline
+	\newline
+	And now variable "i" is no longer needed, what improves speed. 
+\end{frame}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Cloning}
 \begin{frame}
 	\frametitle{Cloning}
-	
+	Clonning is similiar idea to in-linning - it also make a copy of function's AST, but in this case not to replace its call but rather to make a new one with at least one parameter replaced by constant. 
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Example}
+	Consider function "count\_in\_inteval" which returns number of elements from interval [begin, end] that ocuurs in given array.
+	\begin{lstlisting}[linewidth=\textwidth, basicstyle=\tiny]
+int count_in_inteval(double[] array, int lenght, double begin, double end){
+	int couter = 0;
+	for(int i=0; i < length; i++)
+		if(array[i] >= begin && array[i] <= end) counter++;
+	return counter;
+}
+	\end{lstlisting}
+	Call count\_in\_interval(array, lenght, 1.0, 5.0) could at compile time cause preparing cloned function looks like that:
+	\begin{lstlisting}[linewidth=\textwidth, basicstyle=\tiny]
+int count_in_inteval_1_5(double[] array, int lenght){
+	int couter = 0;
+	for(int i=0; i < length; i++)
+		if(array[i] >= 1.0 && array[i] <= 5.0) counter++;	
+	return counter;
+}
+	\end{lstlisting}
+\end{frame}
+
+\begin{frame}
+	Note that the arguments begin and end was replaced by constants, so as it is in in-lining here also some optimisation around function block could be done. However, even without additional actions, code become more efective.
+	\newline\newline
+	A large proportion of the calls with constant parameters concerns calls to library
+	routines, and cloning is most effective when the complete program is being optimized,
+	including the library routines.
 \end{frame}
 
 \end{document}
